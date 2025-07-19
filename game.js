@@ -1,116 +1,94 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const runImages = [new Image(), new Image()];
+runImages[0].src = "assets/run1.png";
+runImages[1].src = "assets/run2.png";
 
-let frame = 0;
-let gameSpeed = 5;
+const jumpImage = new Image();
+jumpImage.src = "assets/jump.png";
+
+const slideImage = new Image();
+slideImage.src = "assets/slide.png";
 
 const bgImage = new Image();
 bgImage.src = "assets/background.png";
 
+// 위치 설정
+let catX = 50;
+let catY = canvas.height - 120; // 바닥 기준 위치로 조정
+let catWidth = 80;
+let catHeight = 80;
+
+let runFrame = 0;
+let isJumping = false;
+let isSliding = false;
+let jumpVelocity = 0;
+
 let bgX = 0;
+
+// 키보드 입력
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !isJumping) {
+    isJumping = true;
+    jumpVelocity = -12;
+  } else if (e.code === "ArrowDown" && !isJumping) {
+    isSliding = true;
+    setTimeout(() => (isSliding = false), 500);
+  }
+});
+
+// 게임 로직
+function update() {
+  if (isJumping) {
+    catY += jumpVelocity;
+    jumpVelocity += 0.5;
+
+    if (catY >= canvas.height - 120) {
+      catY = canvas.height - 120;
+      isJumping = false;
+    }
+  }
+
+  bgX -= 2;
+  if (bgX <= -canvas.width) {
+    bgX = 0;
+  }
+}
+
+// 배경 그리기
 function drawBackground() {
-  bgX -= gameSpeed;
-  if (bgX <= -canvas.width) bgX = 0;
   ctx.drawImage(bgImage, bgX, 0, canvas.width, canvas.height);
   ctx.drawImage(bgImage, bgX + canvas.width, 0, canvas.width, canvas.height);
 }
 
-// 캐릭터 로드
-const runImages = [
-  new Image(),
-  new Image()
-];
-runImages[0].src = "assets/1000000953.png";
-runImages[1].src = "assets/1000001189.png";
-
-const jumpImage = new Image();
-jumpImage.src = "assets/1000001137.png";
-
-const slideImage = new Image();
-slideImage.src = "assets/1000001188.png";
-
-// 캐릭터 위치
-let nyangja = {
-  x: 100,
-  y: canvas.height - 200,
-  width: 100,
-  height: 100,
-  vy: 0,
-  gravity: 1,
-  jumping: false,
-  sliding: false,
-  runFrame: 0
-};
-
-function drawNyangja() {
-  let image;
-
-  if (nyangja.sliding) {
-    image = slideImage;
-    nyangja.height = 60;
-  } else if (nyangja.jumping) {
-    image = jumpImage;
-    nyangja.height = 100;
+// 캐릭터 그리기
+function drawCat() {
+  if (isJumping) {
+    ctx.drawImage(jumpImage, catX, catY, catWidth, catHeight);
+  } else if (isSliding) {
+    // 납작하게 하지 않고 Y좌표만 살짝 아래로
+    ctx.drawImage(slideImage, catX, catY + 20, catWidth, catHeight);
   } else {
-    image = runImages[Math.floor(frame / 10) % 2];
-    nyangja.height = 100;
-  }
-
-  ctx.drawImage(image, nyangja.x, nyangja.y, nyangja.width, nyangja.height);
-}
-
-function updateNyangja() {
-  if (nyangja.jumping) {
-    nyangja.vy += nyangja.gravity;
-    nyangja.y += nyangja.vy;
-    if (nyangja.y >= canvas.height - 200) {
-      nyangja.y = canvas.height - 200;
-      nyangja.vy = 0;
-      nyangja.jumping = false;
-    }
+    ctx.drawImage(runImages[runFrame], catX, catY, catWidth, catHeight);
   }
 }
 
-// 점프
-window.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !nyangja.jumping) {
-    nyangja.jumping = true;
-    nyangja.vy = -18;
-  }
-  if (e.code === "ArrowDown") {
-    nyangja.sliding = true;
-  }
-});
-window.addEventListener("keyup", (e) => {
-  if (e.code === "ArrowDown") {
-    nyangja.sliding = false;
-  }
-});
-
-// 모바일 터치 지원
-window.addEventListener("touchstart", (e) => {
-  if (!nyangja.jumping) {
-    nyangja.jumping = true;
-    nyangja.vy = -18;
-  }
-});
-window.addEventListener("touchend", () => {
-  nyangja.sliding = false;
-});
-
-function animate() {
+// 메인 루프
+function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
-  drawNyangja();
-  updateNyangja();
+  drawCat();
+  update();
 
-  frame++;
-  requestAnimationFrame(animate);
+  if (!isJumping && !isSliding) {
+    runFrame = (runFrame + 1) % runImages.length;
+  }
+
+  requestAnimationFrame(gameLoop);
 }
 
+// 시작
 bgImage.onload = () => {
-  animate();
+  gameLoop();
 };
