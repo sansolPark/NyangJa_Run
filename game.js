@@ -1,94 +1,105 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const runImages = [new Image(), new Image()];
-runImages[0].src = "assets/run1.png";
-runImages[1].src = "assets/run2.png";
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const jumpImage = new Image();
-jumpImage.src = "assets/jump.png";
+let catImages = {
+    run: [new Image(), new Image()],
+    jump: new Image(),
+    slide: new Image()
+};
 
-const slideImage = new Image();
-slideImage.src = "assets/slide.png";
+catImages.run[0].src = "cat_run1.png";
+catImages.run[1].src = "cat_run2.png";
+catImages.jump.src = "cat_jump.png";
+catImages.slide.src = "cat_slide.png";
 
-const bgImage = new Image();
-bgImage.src = "assets/background.png";
-
-// 위치 설정
-let catX = 50;
-let catY = canvas.height - 120; // 바닥 기준 위치로 조정
-let catWidth = 80;
-let catHeight = 80;
-
-let runFrame = 0;
-let isJumping = false;
-let isSliding = false;
-let jumpVelocity = 0;
+let background = new Image();
+background.src = "background.png";
 
 let bgX = 0;
+let bgSpeed = 2;
 
-// 키보드 입력
+let cat = {
+    x: 100,
+    y: canvas.height - 250, // 🟢 바닥에 맞게 수정
+    width: 120,
+    height: 120,
+    vy: 0,
+    gravity: 1,
+    jumping: false,
+    sliding: false,
+    frame: 0,
+    frameDelay: 0
+};
+
 document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !isJumping) {
-    isJumping = true;
-    jumpVelocity = -12;
-  } else if (e.code === "ArrowDown" && !isJumping) {
-    isSliding = true;
-    setTimeout(() => (isSliding = false), 500);
-  }
+    if (e.code === "Space" && !cat.jumping && !cat.sliding) {
+        cat.vy = -20;
+        cat.jumping = true;
+    }
+    if (e.code === "ArrowDown" && !cat.jumping) {
+        cat.sliding = true;
+    }
 });
 
-// 게임 로직
-function update() {
-  if (isJumping) {
-    catY += jumpVelocity;
-    jumpVelocity += 0.5;
-
-    if (catY >= canvas.height - 120) {
-      catY = canvas.height - 120;
-      isJumping = false;
+document.addEventListener("keyup", (e) => {
+    if (e.code === "ArrowDown") {
+        cat.sliding = false;
     }
-  }
+});
 
-  bgX -= 2;
-  if (bgX <= -canvas.width) {
-    bgX = 0;
-  }
+function update() {
+    // 배경 이동
+    bgX -= bgSpeed;
+    if (bgX <= -canvas.width) {
+        bgX = 0;
+    }
+
+    // 중력 적용
+    if (cat.jumping) {
+        cat.y += cat.vy;
+        cat.vy += cat.gravity;
+
+        if (cat.y >= canvas.height - 250) {
+            cat.y = canvas.height - 250;
+            cat.jumping = false;
+            cat.vy = 0;
+        }
+    }
+
+    // 프레임 애니메이션
+    cat.frameDelay++;
+    if (cat.frameDelay > 10) {
+        cat.frame = (cat.frame + 1) % 2;
+        cat.frameDelay = 0;
+    }
 }
 
-// 배경 그리기
-function drawBackground() {
-  ctx.drawImage(bgImage, bgX, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgImage, bgX + canvas.width, 0, canvas.width, canvas.height);
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 배경 그리기 (두 장으로 이어서)
+    ctx.drawImage(background, bgX, 0, canvas.width, canvas.height);
+    ctx.drawImage(background, bgX + canvas.width, 0, canvas.width, canvas.height);
+
+    // 고양이 그리기
+    let drawY = cat.y;
+    if (cat.sliding) {
+        drawY = cat.y + 30; // 🟢 슬라이딩 시 위치만 아래로 (이미지는 그대로)
+        ctx.drawImage(catImages.slide, cat.x, drawY, cat.width, cat.height);
+    } else if (cat.jumping) {
+        ctx.drawImage(catImages.jump, cat.x, cat.y, cat.width, cat.height);
+    } else {
+        ctx.drawImage(catImages.run[cat.frame], cat.x, cat.y, cat.width, cat.height);
+    }
 }
 
-// 캐릭터 그리기
-function drawCat() {
-  if (isJumping) {
-    ctx.drawImage(jumpImage, catX, catY, catWidth, catHeight);
-  } else if (isSliding) {
-    // 납작하게 하지 않고 Y좌표만 살짝 아래로
-    ctx.drawImage(slideImage, catX, catY + 20, catWidth, catHeight);
-  } else {
-    ctx.drawImage(runImages[runFrame], catX, catY, catWidth, catHeight);
-  }
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
 }
 
-// 메인 루프
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBackground();
-  drawCat();
-  update();
-
-  if (!isJumping && !isSliding) {
-    runFrame = (runFrame + 1) % runImages.length;
-  }
-
-  requestAnimationFrame(gameLoop);
-}
-
-// 시작
-bgImage.onload = () => {
-  gameLoop();
-};
+loop();
