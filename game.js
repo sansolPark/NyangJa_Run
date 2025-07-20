@@ -26,6 +26,35 @@ catImages.slide.src = "assets/1000001137.png";
 let background = new Image();
 background.src = "assets/background.png";
 
+// 모든 이미지가 로드될 때까지 기다립니다.
+let imagesLoaded = 0;
+const totalImages = Object.keys(catImages).length + catImages.run.length + 1; // catImages의 각 이미지 + background
+
+function imageLoadHandler() {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+        console.log("All images loaded. Starting game loop.");
+        loop(); // 모든 이미지가 로드되면 게임 루프 시작
+    }
+}
+
+// 고양이 이미지 로드 이벤트 리스너
+for (let key in catImages) {
+    if (Array.isArray(catImages[key])) {
+        catImages[key].forEach(img => {
+            img.onload = imageLoadHandler;
+            img.onerror = () => console.error(`Failed to load image: ${img.src}`);
+        });
+    } else {
+        catImages[key].onload = imageLoadHandler;
+        catImages[key].onerror = () => console.error(`Failed to load image: ${catImages[key].src}`);
+    }
+}
+
+// 배경 이미지 로드 이벤트 리스너
+background.onload = imageLoadHandler;
+background.onerror = () => console.error(`Failed to load image: ${background.src}`);
+
 let bgX = 0;
 let bgSpeed = 2;
 
@@ -124,4 +153,4 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
-loop();
+// loop(); // 모든 이미지가 로드된 후 호출되므로 주석 처리
