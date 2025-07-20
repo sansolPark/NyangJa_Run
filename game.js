@@ -26,9 +26,17 @@ catImages.slide.src = "assets/1000001137.png";
 let background = new Image();
 background.src = "assets/background.png";
 
+let gameOver = false;
+let obstacles = [];
+let obstacleImage = new Image();
+obstacleImage.src = "assets/obstacle.png"; // Placeholder, user needs to provide this
+obstacleImage.onload = imageLoadHandler;
+
+let gameSpeed = 5; // Initial game speed
+
 // 모든 이미지가 로드될 때까지 기다립니다.
 let imagesLoaded = 0;
-const totalImages = Object.keys(catImages).length + catImages.run.length + 1; // catImages의 각 이미지 + background
+const totalImages = Object.keys(catImages).length + catImages.run.length + 1 + 1; // catImages의 각 이미지 + background + obstacleImage
 
 function imageLoadHandler() {
     imagesLoaded++;
@@ -72,6 +80,21 @@ let cat = {
     frameDelay: 0
 };
 
+function createObstacle() {
+    const obstacleWidth = 50;
+    const obstacleHeight = 100;
+    const obstacleX = canvas.width;
+    const obstacleY = canvas.height - obstacleHeight - 130; // Adjust based on ground level
+    obstacles.push({
+        x: obstacleX,
+        y: obstacleY,
+        width: obstacleWidth,
+        height: obstacleHeight
+    });
+}
+
+let obstacleInterval = setInterval(createObstacle, 2000); // Generate new obstacle every 2 seconds
+
 document.addEventListener("keydown", (e) => {
     if (e.code === "Space" && cat.jumpCount < 2 && !cat.sliding) {
         cat.vy = -20;
@@ -86,6 +109,24 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("touchstart", (e) => {
     // Prevent default touch behavior like scrolling
     e.preventDefault();
+
+    if (gameOver) {
+        // Reset game state
+        gameOver = false;
+        obstacles = [];
+        cat.x = 100;
+        cat.y = canvas.height - 250;
+        cat.vy = 0;
+        cat.jumping = false;
+        cat.sliding = false;
+        cat.jumpCount = 0;
+        bgX = 0;
+        // Restart obstacle generation
+        clearInterval(obstacleInterval);
+        obstacleInterval = setInterval(createObstacle, 2000);
+        return; // Exit to prevent immediate jump after restart
+    }
+
     // Trigger jump if not already jumping or sliding, and jump count allows
     if (cat.jumpCount < 2 && !cat.sliding) {
         cat.vy = -20;
@@ -101,11 +142,34 @@ document.addEventListener("keyup", (e) => {
 });
 
 function update() {
+    if (gameOver) return; // Stop updates if game is over
+
     // 배경 이동
-    bgX -= bgSpeed;
+    bgX -= gameSpeed;
     if (bgX <= -canvas.width) {
         bgX = 0;
     }
+
+    // 장애물 이동 및 충돌 감지
+    obstacles.forEach((obstacle, index) => {
+        obstacle.x -= gameSpeed;
+
+        // 충돌 감지 (간단한 AABB 충돌)
+        if (
+            cat.x < obstacle.x + obstacle.width &&
+            cat.x + cat.width > obstacle.x &&
+            cat.y < obstacle.y + obstacle.height &&
+            cat.y + cat.height > obstacle.y
+        ) {
+            gameOver = true;
+            console.log("Game Over!");
+        }
+
+        // 화면 밖으로 나간 장애물 제거
+        if (obstacle.x + obstacle.width < 0) {
+            obstacles.splice(index, 1);
+        }
+    });
 
     // 중력 적용
     if (cat.jumping) {
@@ -135,6 +199,11 @@ function draw() {
     ctx.drawImage(background, bgX, 0, canvas.width, canvas.height);
     ctx.drawImage(background, bgX + canvas.width, 0, canvas.width, canvas.height);
 
+    // 장애물 그리기
+    obstacles.forEach(obstacle => {
+        ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    });
+
     // 고양이 그리기
     let drawY = cat.y;
     if (cat.sliding) {
@@ -144,6 +213,14 @@ function draw() {
         ctx.drawImage(catImages.jump, cat.x, cat.y, cat.width, cat.height);
     } else {
         ctx.drawImage(catImages.run[cat.frame], cat.x, cat.y, cat.width, cat.height);
+    }
+
+    // 게임 오버 메시지
+    if (gameOver) {
+        ctx.fillStyle = "black";
+        ctx.font = "40px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over! Tap to Restart", canvas.width / 2, canvas.height / 2);
     }
 }
 
