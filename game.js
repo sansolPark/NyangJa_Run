@@ -10,13 +10,13 @@ let catImages = {
     slide: new Image()
 };
 
-catImages.run[0].src = "cat_run1.png";
-catImages.run[1].src = "cat_run2.png";
-catImages.jump.src = "cat_jump.png";
-catImages.slide.src = "cat_slide.png";
+catImages.run[0].src = "assets/1000001188.png";
+catImages.run[1].src = "assets/1000001189.png";
+catImages.jump.src = "assets/1000000953.png";
+catImages.slide.src = "assets/1000001137.png";
 
 let background = new Image();
-background.src = "background.png";
+background.src = "assets/background.png";
 
 let bgX = 0;
 let bgSpeed = 2;
