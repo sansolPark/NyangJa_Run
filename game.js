@@ -46,6 +46,17 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+document.addEventListener("touchstart", (e) => {
+    // Prevent default touch behavior like scrolling
+    e.preventDefault();
+    // Trigger jump if not already jumping or sliding, and jump count allows
+    if (cat.jumpCount < 2 && !cat.sliding) {
+        cat.vy = -20;
+        cat.jumping = true;
+        cat.jumpCount++;
+    }
+});
+
 document.addEventListener("keyup", (e) => {
     if (e.code === "ArrowDown") {
         cat.sliding = false;
