@@ -31,6 +31,7 @@ let obstacles = [];
 let obstacleImage = new Image();
 obstacleImage.src = "assets/obstacle.png"; // Placeholder, user needs to provide this
 obstacleImage.onload = imageLoadHandler;
+obstacleImage.onerror = () => console.error(`Failed to load image: ${obstacleImage.src}`);
 
 let gameSpeed = 5; // Initial game speed
 
@@ -64,7 +65,6 @@ background.onload = imageLoadHandler;
 background.onerror = () => console.error(`Failed to load image: ${background.src}`);
 
 let bgX = 0;
-let bgSpeed = 2;
 
 let cat = {
     x: 100,
