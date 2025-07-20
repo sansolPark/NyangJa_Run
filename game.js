@@ -30,14 +30,16 @@ let cat = {
     gravity: 1,
     jumping: false,
     sliding: false,
+    jumpCount: 0,
     frame: 0,
     frameDelay: 0
 };
 
 document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !cat.jumping && !cat.sliding) {
+    if (e.code === "Space" && cat.jumpCount < 2 && !cat.sliding) {
         cat.vy = -20;
         cat.jumping = true;
+        cat.jumpCount++;
     }
     if (e.code === "ArrowDown" && !cat.jumping) {
         cat.sliding = true;
@@ -66,6 +68,7 @@ function update() {
             cat.y = canvas.height - 250;
             cat.jumping = false;
             cat.vy = 0;
+            cat.jumpCount = 0;
         }
     }
 
