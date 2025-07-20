@@ -9,14 +9,45 @@
       margin: 0;
       overflow: hidden;
       background: #87ceeb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      width: 100vw;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     canvas {
       display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Force landscape orientation visually */
+    @media screen and (orientation: portrait) {
+      #game-container {
+        transform: rotate(90deg);
+        transform-origin: bottom left;
+        width: 100vh;
+        height: 100vw;
+        position: absolute;
+        top: 100%;
+        left: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+  </div>
   <script src="game.js"></script>
 </body>
 </html>
