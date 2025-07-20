@@ -4,6 +4,23 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// 모바일 가로 모드 요청 (브라우저 정책에 따라 작동하지 않을 수 있음)
+if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape')
+        .then(() => console.log('Screen orientation locked to landscape.'))
+        .catch((err) => console.warn('Could not lock screen orientation:', err));
+} else {
+    console.warn('Screen Orientation API not supported.');
+}
+
+// 화면 크기 변경 시 캔버스 및 고양이 위치 조정
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    // 고양이의 초기 Y 위치를 새로운 캔버스 높이에 맞춰 재조정
+    cat.y = canvas.height - 250; // 기존 바닥 레벨 유지
+});
+
 let catImages = {
     run: [new Image(), new Image()],
     jump: new Image(),
