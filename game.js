@@ -37,7 +37,16 @@ let gameSpeed = 5; // Initial game speed
 
 // 모든 이미지가 로드될 때까지 기다립니다.
 let imagesLoaded = 0;
-const totalImages = Object.keys(catImages).length + catImages.run.length + 1 + 1; // catImages의 각 이미지 + background + obstacleImage
+let totalImages = 0;
+for (let key in catImages) {
+    if (Array.isArray(catImages[key])) {
+        totalImages += catImages[key].length;
+    } else {
+        totalImages++;
+    }
+}
+totalImages += 1; // for background
+totalImages += 1; // for obstacleImage
 
 function imageLoadHandler() {
     imagesLoaded++;
