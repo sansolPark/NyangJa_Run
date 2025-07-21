@@ -8,18 +8,30 @@
     body {
       margin: 0;
       overflow: hidden;
-      background: #87ceeb;
+      background: #000; /* 로고 화면을 위한 검은 배경 */
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       width: 100vw;
     }
+    #splash-screen {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #splash-screen img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
     #game-container {
       position: relative;
       width: 100vw;
       height: 100vh;
-      display: flex;
+      display: none; /* 처음에는 게임 숨기기 */
       justify-content: center;
       align-items: center;
     }
@@ -28,9 +40,10 @@
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
+      background: #87ceeb; /* 캔버스 자체 배경 */
     }
 
-    /* Force landscape orientation visually */
+    /* 가로 모드 강제 */
     @media screen and (orientation: portrait) {
       #game-container {
         transform: rotate(90deg);
@@ -45,6 +58,9 @@
   </style>
 </head>
 <body>
+  <div id="splash-screen">
+    <img src="assets/NyangJa_studio.jpg" alt="NyangJa Studio Logo">
+  </div>
   <div id="game-container">
     <canvas id="gameCanvas"></canvas>
   </div>
