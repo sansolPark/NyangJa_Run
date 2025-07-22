@@ -99,7 +99,8 @@ let cat = {
     jumpCount: 0,
     frame: 0,
     frameDelay: 0,
-    runFrameSpeed: 5
+    runFrameSpeed: 5,
+    rotation: 0
 };
 
 // --- 게임 초기화 및 시작 ---
@@ -111,6 +112,7 @@ function resetGame() {
     cat.jumping = false;
     cat.sliding = false;
     cat.jumpCount = 0;
+    cat.rotation = 0;
     bgX = 0;
     gameSpeed = 5;
     if (obstacleInterval) clearInterval(obstacleInterval);
@@ -235,6 +237,9 @@ function update() {
     });
 
     if (cat.jumping) {
+        if (cat.jumpCount === 2) {
+            cat.rotation += 0.2;
+        }
         cat.y += cat.vy;
         cat.vy += cat.gravity;
         if (cat.y >= canvas.height - 250) {
@@ -242,6 +247,7 @@ function update() {
             cat.vy = 0;
             cat.jumping = false;
             cat.jumpCount = 0;
+            cat.rotation = 0;
         }
     } else if (!cat.sliding) {
         cat.y = canvas.height - 250;
@@ -277,16 +283,28 @@ function draw() {
         let currentCatImage;
         if (cat.jumping) {
             currentCatImage = catImages.jump;
+            if (cat.jumpCount === 2) {
+                ctx.save();
+                ctx.translate(cat.x + cat.width / 2, cat.y + cat.height / 2);
+                ctx.rotate(cat.rotation);
+                ctx.drawImage(currentCatImage, -cat.width / 2, -cat.height / 2, cat.width, cat.height);
+                ctx.restore();
+            } else {
+                 ctx.drawImage(currentCatImage, cat.x, cat.y, cat.width, cat.height);
+            }
         } else if (cat.sliding) {
             currentCatImage = catImages.slide;
             ctx.drawImage(currentCatImage, cat.x, cat.y + cat.height / 2, cat.width, cat.height / 2);
         } else {
             currentCatImage = catImages.run[cat.frame];
-        }
-
-        if (!cat.sliding) {
             ctx.drawImage(currentCatImage, cat.x, cat.y, cat.width, cat.height);
         }
+
+        if (!cat.sliding && !(cat.jumping && cat.jumpCount === 2)) {
+             let img = cat.jumping ? catImages.jump : catImages.run[cat.frame];
+             ctx.drawImage(img, cat.x, cat.y, cat.width, cat.height);
+        }
+
 
         obstacles.forEach(obstacle => {
             ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
