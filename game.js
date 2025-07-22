@@ -51,11 +51,14 @@ function imageLoadHandler() {
     if (imagesLoaded >= totalImages) {
         console.log("All images loaded.");
         setTimeout(() => {
-            splashScreen.style.display = 'none';
-            gameContainer.style.display = 'flex';
-            gameState = 'title';
-            startTitleAnimation();
-        }, 2000); // 2초 후 로고 사라짐
+            splashScreen.classList.add('fade-out');
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                gameContainer.style.display = 'flex';
+                gameState = 'title';
+                startTitleAnimation();
+            }, 1000); // 페이드아웃 시간과 동일하게 설정
+        }, 1000); // 로고 표시 시간
     }
 }
 
@@ -63,7 +66,7 @@ function startTitleAnimation() {
     if (titleInterval) clearInterval(titleInterval);
     titleInterval = setInterval(() => {
         titleImageToggle = !titleImageToggle;
-    }, 1000);
+    }, 300); // 0.3초 간격으로 변경
 }
 
 // 모든 이미지에 로드 핸들러 할당
