@@ -108,45 +108,67 @@ function startGame() {
 }
 
 // --- 이벤트 리스너 ---
-function handleUserAction(event) {
-    event.preventDefault(); // 스크롤 등 기본 동작 방지
-
-    if (gameState === 'title') {
-        startGame();
-    } else if (gameState === 'playing') {
-        // 키보드 입력 처리
-        if (event.type === 'keydown') {
-            if (event.code === "Space" && cat.jumpCount < 2 && !cat.sliding) {
-                cat.vy = -20;
-                cat.jumping = true;
-                cat.jumpCount++;
-            } else if (event.code === "ArrowDown" && !cat.jumping && !cat.sliding) {
-                cat.sliding = true;
-                cat.vy = 0;
-            }
-        } else { // 터치 입력 처리
-            if (cat.jumpCount < 2 && !cat.sliding) {
-                cat.vy = -20;
-                cat.jumping = true;
-                cat.jumpCount++;
-            }
-        }
-    } else if (gameState === 'gameOver') {
-        startGame();
+// 키보드 입력 (PC)
+document.addEventListener("keydown", (e) => {
+    if (gameState !== 'playing') return;
+    e.preventDefault();
+    if (e.code === "Space" && cat.jumpCount < 2 && !cat.sliding) {
+        cat.vy = -20;
+        cat.jumping = true;
+        cat.jumpCount++;
+    } else if (e.code === "ArrowDown" && !cat.jumping && !cat.sliding) {
+        cat.sliding = true;
+        cat.vy = 0;
     }
-}
-
-document.addEventListener("keydown", handleUserAction);
-document.addEventListener("touchstart", handleUserAction);
+});
 
 document.addEventListener("keyup", (e) => {
     if (e.code === "ArrowDown") {
         cat.sliding = false;
     }
 });
-document.addEventListener("touchend", (e) => {
-    cat.sliding = false;
-});
+
+// 터치 및 클릭 입력 (모바일 및 PC)
+function handlePointerInteraction(event) {
+    event.preventDefault();
+
+    // 1. 타이틀 또는 게임오버 화면에서 게임 시작/재시작
+    if (gameState === 'title' || gameState === 'gameOver') {
+        // touchend나 keyup 같은 이벤트로 재시작되는 것을 방지
+        if (event.type === 'click' || event.type === 'touchstart') {
+            startGame();
+        }
+        return;
+    }
+
+    // 2. 게임 플레이 중 조작
+    if (gameState === 'playing') {
+        if (event.type === 'touchstart') {
+            const touchY = event.touches[0].clientY;
+            const halfScreen = canvas.height / 2;
+
+            if (touchY < halfScreen) { // 화면 상단 터치 -> 점프
+                if (cat.jumpCount < 2 && !cat.sliding) {
+                    cat.vy = -20;
+                    cat.jumping = true;
+                    cat.jumpCount++;
+                }
+            } else { // 화면 하단 터치 -> 슬라이드 시작
+                if (!cat.jumping) {
+                    cat.sliding = true;
+                    cat.vy = 0;
+                }
+            }
+        } else if (event.type === 'touchend') {
+            // 터치가 끝나면 슬라이드 중지
+            cat.sliding = false;
+        }
+    }
+}
+
+document.addEventListener("click", handlePointerInteraction);
+document.addEventListener("touchstart", handlePointerInteraction, { passive: false });
+document.addEventListener("touchend", handlePointerInteraction, { passive: false });
 
 
 function createObstacle() {
