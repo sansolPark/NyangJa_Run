@@ -274,10 +274,7 @@ function draw() {
         } else {
             ctx.drawImage(titleImage2, 0, 0, canvas.width, canvas.height);
         }
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.font = "bold 40px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("화면을 터치하여 시작하세요", canvas.width / 2, canvas.height - 100);
+       
 
     } else if (gameState === 'playing' || gameState === 'gameOver') {
         ctx.drawImage(background, bgX, 0, canvas.width, canvas.height);
