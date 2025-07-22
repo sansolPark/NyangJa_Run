@@ -13,7 +13,7 @@ canvas.height = window.innerHeight;
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    cat.y = canvas.height - 250;
+    cat.y = canvas.height - 170;
     // 리사이즈 시 현재 상태에 맞춰 다시 그리기
     draw();
 });
@@ -92,7 +92,7 @@ let obstacleInterval;
 
 let cat = {
     x: 100,
-    y: canvas.height - 250,
+    y: canvas.height - 170,
     width: 120,
     height: 120,
     vy: 0,
@@ -110,7 +110,7 @@ let cat = {
 function resetGame() {
     obstacles = [];
     cat.x = 100;
-    cat.y = canvas.height - 250;
+    cat.y = canvas.height - 170;
     cat.vy = 0;
     cat.jumping = false;
     cat.sliding = false;
@@ -197,7 +197,14 @@ function createObstacle() {
     const obstacleHeight = 100;
     const obstacleX = canvas.width;
     const obstacleY = canvas.height - 150; // 바닥에 맞춰서
-    obstacles.push({ x: obstacleX, y: obstacleY, width: obstacleWidth, height: obstacleHeight });
+    obstacles.push({ 
+        x: obstacleX, 
+        y: obstacleY, 
+        width: obstacleWidth, 
+        height: obstacleHeight,
+        rotation: 0,
+        rotationSpeed: (Math.random() - 0.5) * 0.1 // -0.05 to 0.05
+    });
 }
 
 // --- 게임 로직 업데이트 ---
@@ -216,6 +223,7 @@ function update() {
 
     obstacles.forEach((obstacle, index) => {
         obstacle.x -= gameSpeed;
+        obstacle.rotation += obstacle.rotationSpeed;
 
         let catActualY = cat.y;
         let catActualHeight = cat.height;
@@ -245,15 +253,15 @@ function update() {
         }
         cat.y += cat.vy;
         cat.vy += cat.gravity;
-        if (cat.y >= canvas.height - 250) {
-            cat.y = canvas.height - 250;
+        if (cat.y >= canvas.height - 170) {
+            cat.y = canvas.height - 170;
             cat.vy = 0;
             cat.jumping = false;
             cat.jumpCount = 0;
             cat.rotation = 0;
         }
     } else if (!cat.sliding) {
-        cat.y = canvas.height - 250;
+        cat.y = canvas.height - 170;
     }
 
     gameSpeed += 0.001;
@@ -274,7 +282,10 @@ function draw() {
         } else {
             ctx.drawImage(titleImage2, 0, 0, canvas.width, canvas.height);
         }
-       
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.font = "bold 40px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("화면을 터치하여 시작하세요", canvas.width / 2, canvas.height - 100);
 
     } else if (gameState === 'playing' || gameState === 'gameOver') {
         ctx.drawImage(background, bgX, 0, canvas.width, canvas.height);
@@ -307,7 +318,11 @@ function draw() {
 
 
         obstacles.forEach(obstacle => {
-            ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            ctx.save();
+            ctx.translate(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+            ctx.rotate(obstacle.rotation);
+            ctx.drawImage(obstacleImage, -obstacle.width / 2, -obstacle.height / 2, obstacle.width, obstacle.height);
+            ctx.restore();
         });
 
         if (gameState === 'gameOver') {
@@ -330,5 +345,5 @@ function gameLoop() {
 }
 
 // --- 초기 실행 ---
-cat.y = canvas.height - 250;
+cat.y = canvas.height - 170;
 gameLoop();
