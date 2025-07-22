@@ -34,12 +34,17 @@ background.src = "assets/background.png";
 
 let titleImage = new Image();
 titleImage.src = "assets/title.jpg";
+let titleImage2 = new Image();
+titleImage2.src = "assets/title2.jpg";
 
 let obstacleImage = new Image();
 obstacleImage.src = "assets/obstacle.png";
 
 let imagesLoaded = 0;
-const totalImages = Object.values(catImages).flat().length + 3; // 고양이 3종, 배경, 타이틀, 장애물
+const totalImages = Object.values(catImages).flat().length + 4; // 고양이 3종, 배경, 타이틀 2종, 장애물
+
+let titleInterval;
+let titleImageToggle = true;
 
 function imageLoadHandler() {
     imagesLoaded++;
@@ -49,8 +54,16 @@ function imageLoadHandler() {
             splashScreen.style.display = 'none';
             gameContainer.style.display = 'flex';
             gameState = 'title';
+            startTitleAnimation();
         }, 2000); // 2초 후 로고 사라짐
     }
+}
+
+function startTitleAnimation() {
+    if (titleInterval) clearInterval(titleInterval);
+    titleInterval = setInterval(() => {
+        titleImageToggle = !titleImageToggle;
+    }, 1000);
 }
 
 // 모든 이미지에 로드 핸들러 할당
@@ -62,6 +75,8 @@ background.onload = imageLoadHandler;
 background.onerror = () => console.error(`Failed to load image: ${background.src}`);
 titleImage.onload = imageLoadHandler;
 titleImage.onerror = () => console.error(`Failed to load image: ${titleImage.src}`);
+titleImage2.onload = imageLoadHandler;
+titleImage2.onerror = () => console.error(`Failed to load image: ${titleImage2.src}`);
 obstacleImage.onload = imageLoadHandler;
 obstacleImage.onerror = () => console.error(`Failed to load image: ${obstacleImage.src}`);
 
@@ -102,6 +117,7 @@ function resetGame() {
 }
 
 function startGame() {
+    if (titleInterval) clearInterval(titleInterval);
     resetGame();
     gameState = 'playing';
     obstacleInterval = setInterval(createObstacle, 2000);
@@ -244,7 +260,11 @@ function draw() {
     }
     
     if (gameState === 'title') {
-        ctx.drawImage(titleImage, 0, 0, canvas.width, canvas.height);
+        if (titleImageToggle) {
+            ctx.drawImage(titleImage, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.drawImage(titleImage2, 0, 0, canvas.width, canvas.height);
+        }
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         ctx.font = "bold 40px Arial";
         ctx.textAlign = "center";
