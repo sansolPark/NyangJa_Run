@@ -39,13 +39,17 @@ let obstacleImage = new Image();
 obstacleImage.src = "assets/obstacle.png";
 
 let imagesLoaded = 0;
-const totalImages = catImages.run.length + 3 + 1 + 1; // 고양이 3종, 배경, 타이틀, 장애물
+const totalImages = Object.values(catImages).flat().length + 3; // 고양이 3종, 배경, 타이틀, 장애물
 
 function imageLoadHandler() {
     imagesLoaded++;
     if (imagesLoaded >= totalImages) {
         console.log("All images loaded.");
-        // 이미지 로딩이 끝나도 바로 게임을 시작하지 않음
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+            gameContainer.style.display = 'flex';
+            gameState = 'title';
+        }, 2000); // 2초 후 로고 사라짐
     }
 }
 
@@ -102,16 +106,6 @@ function startGame() {
     gameState = 'playing';
     obstacleInterval = setInterval(createObstacle, 2000);
 }
-
-// --- 로딩 및 화면 전환 ---
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        splashScreen.style.display = 'none';
-        gameContainer.style.display = 'flex';
-        gameState = 'title';
-    }, 2000); // 2초 후 로고 사라짐
-});
-
 
 // --- 이벤트 리스너 ---
 function handleUserAction(event) {
@@ -222,6 +216,11 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if (gameState === 'loading') {
+        // 로딩 중에는 아무것도 그리지 않음 (검은 화면 방지)
+        return;
+    }
+    
     if (gameState === 'title') {
         ctx.drawImage(titleImage, 0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
