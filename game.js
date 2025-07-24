@@ -277,6 +277,15 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 버튼 가시성 조절
+    if (gameState === 'playing') {
+        jumpBtn.style.display = 'block';
+        slideBtn.style.display = 'block';
+    } else {
+        jumpBtn.style.display = 'none';
+        slideBtn.style.display = 'none';
+    }
+
     if (gameState === 'loading') {
         // 로딩 중에는 아무것도 그리지 않음 (검은 화면 방지)
         return;
