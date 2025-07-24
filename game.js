@@ -199,17 +199,26 @@ slideBtn.addEventListener("mouseup", handleSlideEnd);
 
 
 function createObstacle() {
-    const obstacleWidth = 50;
-    const obstacleHeight = 100;
+    // 원본 이미지 비율 유지
+    const originalAspectRatio = obstacleImage.naturalWidth / obstacleImage.naturalHeight;
+    const obstacleHeight = 100; // 기준 높이
+    const obstacleWidth = obstacleHeight * originalAspectRatio;
+
     const obstacleX = canvas.width;
-    const obstacleY = canvas.height - 150; // 바닥에 맞춰서
-    obstacles.push({ 
-        x: obstacleX, 
-        y: obstacleY, 
-        width: obstacleWidth, 
+
+    // 장애물 높이 랜덤 설정
+    const isHigh = Math.random() < 0.5;
+    // 높은 장애물은 슬라이드로 피해야 함, 낮은 장애물은 점프로 피해야 함
+    const obstacleY = isHigh ? canvas.height - 220 : canvas.height - 150;
+
+    obstacles.push({
+        x: obstacleX,
+        y: obstacleY,
+        width: obstacleWidth,
         height: obstacleHeight,
         rotation: 0,
-        rotationSpeed: (Math.random() - 0.5) * 0.1 // -0.05 to 0.05
+        // 회전 속도 2배 증가
+        rotationSpeed: (Math.random() - 0.5) * 0.2 // -0.1 to 0.1
     });
 }
 
