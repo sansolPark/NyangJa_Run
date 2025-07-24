@@ -46,6 +46,20 @@
       object-fit: contain;
       background: #87ceeb; /* 캔버스 자체 배경 */
     }
+    #jumpBtn, #slideBtn {
+        position: absolute;
+        bottom: 20px;
+        width: 80px;
+        height: 80px;
+        cursor: pointer;
+        z-index: 10; /* 캔버스 위에 오도록 */
+    }
+    #jumpBtn {
+        left: 20px;
+    }
+    #slideBtn {
+        right: 20px;
+    }
 
     
   </style>
@@ -56,6 +70,8 @@
   </div>
   <div id="game-container">
     <canvas id="gameCanvas"></canvas>
+    <img src="assets/Jump_btn.png" id="jumpBtn" alt="Jump">
+    <img src="assets/slide_btn.png" id="slideBtn" alt="Slide">
   </div>
   <script src="game.js"></script>
 </body>
