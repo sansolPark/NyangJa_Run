@@ -237,7 +237,7 @@ function update() {
     }
 
     obstacles.forEach((obstacle, index) => {
-        obstacle.x -= gameSpeed * 1.5; // 배경보다 빠르게 움직여 날아오는 효과
+        obstacle.x -= gameSpeed * 2.5; // 배경보다 훨씬 빠르게 움직여 날아오는 효과
         obstacle.rotation += obstacle.rotationSpeed;
 
         let catActualY = cat.y;
