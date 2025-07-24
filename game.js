@@ -117,7 +117,8 @@ function resetGame() {
     cat.jumpCount = 0;
     cat.rotation = 0;
     bgX = 0;
-    gameSpeed = 5;
+    // 화면 너비에 비례하여 게임 속도 설정 (일관된 속도감 제공)
+    gameSpeed = canvas.width / 200;
     if (obstacleInterval) clearInterval(obstacleInterval);
 }
 
