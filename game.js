@@ -40,8 +40,13 @@ titleImage2.src = "assets/title2.jpg";
 let obstacleImage = new Image();
 obstacleImage.src = "assets/obstacle.png";
 
+let mob1Image = new Image();
+mob1Image.src = "assets/Mob_1_slime.png";
+let mob2Image = new Image();
+mob2Image.src = "assets/Mob_2_cockroach.png";
+
 let imagesLoaded = 0;
-const totalImages = Object.values(catImages).flat().length + 4; // 고양이 3종, 배경, 타이틀 2종, 장애물
+const totalImages = Object.values(catImages).flat().length + 6; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 2종
 
 let titleInterval;
 let titleImageToggle = true;
@@ -82,13 +87,24 @@ titleImage2.onload = imageLoadHandler;
 titleImage2.onerror = () => console.error(`Failed to load image: ${titleImage2.src}`);
 obstacleImage.onload = imageLoadHandler;
 obstacleImage.onerror = () => console.error(`Failed to load image: ${obstacleImage.src}`);
+mob1Image.onload = imageLoadHandler;
+mob1Image.onerror = () => console.error(`Failed to load image: ${mob1Image.src}`);
+mob2Image.onload = imageLoadHandler;
+mob2Image.onerror = () => console.error(`Failed to load image: ${mob2Image.src}`);
 
 
 // --- 게임 변수 ---
 let obstacles = [];
+let monsters = [];
+let playerEnergy = 100;
+const monsterTypes = {
+    slime: { image: mob1Image, energy: 1, width: 80, height: 80 },
+    cockroach: { image: mob2Image, energy: 10, width: 100, height: 100 }
+};
 let gameSpeed = 5;
 let bgX = 0;
 let obstacleInterval;
+let monsterInterval;
 
 let cat = {
     x: 100,
@@ -109,6 +125,8 @@ let cat = {
 // --- 게임 초기화 및 시작 ---
 function resetGame() {
     obstacles = [];
+    monsters = [];
+    playerEnergy = 100;
     cat.x = 100;
     cat.y = canvas.height - 170;
     cat.vy = 0;
@@ -127,6 +145,7 @@ function startGame() {
     resetGame();
     gameState = 'playing';
     obstacleInterval = setInterval(createObstacle, 2000);
+    monsterInterval = setInterval(createMonster, 3000);
 }
 
 // --- 이벤트 리스너 ---
@@ -158,9 +177,29 @@ const slideBtn = document.getElementById("slideBtn");
 function handleCanvasInteraction(event) {
     event.preventDefault();
     if (gameState === 'title' || gameState === 'gameOver') {
-        if (event.type === 'click' || event.type === 'touchstart') {
-            startGame();
-        }
+        startGame();
+    } else if (gameState === 'playing') {
+        const rect = canvas.getBoundingClientRect();
+        const touches = event.changedTouches ? Array.from(event.changedTouches) : [event];
+
+        touches.forEach(touch => {
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            monsters.forEach((monster, index) => {
+                if (
+                    x > monster.x &&
+                    x < monster.x + monster.width &&
+                    y > monster.y &&
+                    y < monster.y + monster.height
+                ) {
+                    monster.energy -= 1;
+                    if (monster.energy <= 0) {
+                        monsters.splice(index, 1);
+                    }
+                }
+            });
+        });
     }
 }
 canvas.addEventListener("click", handleCanvasInteraction);
@@ -223,6 +262,20 @@ function createObstacle() {
     });
 }
 
+function createMonster() {
+    const monsterKey = Math.random() < 0.7 ? 'slime' : 'cockroach'; // 70% slime, 30% cockroach
+    const type = monsterTypes[monsterKey];
+
+    monsters.push({
+        x: canvas.width,
+        y: canvas.height - 170,
+        width: type.width,
+        height: type.height,
+        energy: type.energy,
+        type: monsterKey
+    });
+}
+
 // --- 게임 로직 업데이트 ---
 function update() {
     if (gameState !== 'playing') return;
@@ -256,10 +309,42 @@ function update() {
         ) {
             gameState = 'gameOver';
             clearInterval(obstacleInterval);
+            clearInterval(monsterInterval);
         }
 
         if (obstacle.x + obstacle.width < 0) {
             obstacles.splice(index, 1);
+        }
+    });
+
+    // 몬스터 로직
+    monsters.forEach((monster, index) => {
+        monster.x -= gameSpeed;
+
+        let catActualY = cat.y;
+        let catActualHeight = cat.height;
+        if (cat.sliding) {
+            catActualY = cat.y + cat.height / 2;
+            catActualHeight = cat.height / 2;
+        }
+
+        if (
+            cat.x < monster.x + monster.width &&
+            cat.x + cat.width > monster.x &&
+            catActualY < monster.y + monster.height &&
+            catActualY + catActualHeight > monster.y
+        ) {
+            monsters.splice(index, 1);
+            playerEnergy -= 1;
+            if (playerEnergy <= 0) {
+                gameState = 'gameOver';
+                clearInterval(obstacleInterval);
+                clearInterval(monsterInterval);
+            }
+        }
+
+        if (monster.x + monster.width < 0) {
+            monsters.splice(index, 1);
         }
     });
 
@@ -349,6 +434,17 @@ function draw() {
             ctx.drawImage(obstacleImage, -obstacle.width / 2, -obstacle.height / 2, obstacle.width, obstacle.height);
             ctx.restore();
         });
+
+        monsters.forEach(monster => {
+            const type = monsterTypes[monster.type];
+            ctx.drawImage(type.image, monster.x, monster.y, monster.width, monster.height);
+        });
+
+        // 에너지 표시
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Energy: " + playerEnergy, 20, 40);
 
         if (gameState === 'gameOver') {
             ctx.fillStyle = "red";
