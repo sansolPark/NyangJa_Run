@@ -515,7 +515,7 @@ function draw() {
         ctx.fillStyle = "white";
         ctx.font = "30px Arial";
         ctx.textAlign = "left";
-        ctx.fillText("x " + fishCount, 210, 80);
+        ctx.fillText("x " + fishCount, 210, canvas.height - 50);
 
         if (gameState === 'gameOver') {
             ctx.fillStyle = "red";
