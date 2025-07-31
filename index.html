@@ -46,7 +46,7 @@
       object-fit: contain;
       background: #87ceeb; /* 캔버스 자체 배경 */
     }
-    #jumpBtn, #slideBtn {
+    #jumpBtn, #fishBtn, #attackBtn, #slideBtn {
         position: absolute;
         bottom: 20px;
         width: 80px;
@@ -56,6 +56,12 @@
     }
     #jumpBtn {
         left: 20px;
+    }
+    #fishBtn {
+        left: 120px;
+    }
+    #attackBtn {
+        right: 120px;
     }
     #slideBtn {
         right: 20px;
@@ -72,8 +78,8 @@
     <canvas id="gameCanvas"></canvas>
     <img src="assets/Jump_btn.png" id="jumpBtn" alt="Jump">
     <img src="assets/fish_btn.png" id="fishBtn" alt="Fish">
-    <img src="assets/slide_btn.png" id="slideBtn" alt="Slide">
     <img src="assets/Cunai_btn.png" id="attackBtn" alt="Attack">
+    <img src="assets/slide_btn.png" id="slideBtn" alt="Slide">
   </div>
   <script src="game.js"></script>
 </body>

@@ -50,10 +50,12 @@ let mob3Image = new Image();
 mob3Image.src = "assets/Mob_3_slime_blue.png";
 let mob4Image = new Image();
 mob4Image.src = "assets/Mob_4_slime_stone.png";
+let fishImage = new Image();
+fishImage.src = "assets/fish.png";
 
 
 let imagesLoaded = 0;
-const totalImages = Object.values(catImages).flat().length + 8; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 4종
+const totalImages = Object.values(catImages).flat().length + 9; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 4종, 물고기 1종
 
 let titleInterval;
 let titleImageToggle = true;
@@ -103,12 +105,16 @@ mob3Image.onload = imageLoadHandler;
 mob3Image.onerror = () => console.error(`Failed to load image: ${mob3Image.src}`);
 mob4Image.onload = imageLoadHandler;
 mob4Image.onerror = () => console.error(`Failed to load image: ${mob4Image.src}`);
+fishImage.onload = imageLoadHandler;
+fishImage.onerror = () => console.error(`Failed to load image: ${fishImage.src}`);
 
 
 
 // --- 게임 변수 ---
 let monsters = [];
 let projectiles = [];
+let items = [];
+let fishCount = 0;
 let playerEnergy = 100;
 const monsterTypes = {
     slime: { image: mob1Image, energy: 1, width: 80, height: 80 },
@@ -141,6 +147,8 @@ let cat = {
 function resetGame() {
     monsters = [];
     projectiles = [];
+    items = [];
+    fishCount = 0;
     playerEnergy = 100;
     cat.x = 100;
     cat.y = canvas.height - 170;
@@ -276,8 +284,9 @@ attackBtn.addEventListener("click", handleAttack);
 
 function handleFish(e) {
     e.preventDefault();
-    if (gameState === 'playing') {
+    if (gameState === 'playing' && fishCount > 0) {
         playerEnergy += 100;
+        fishCount--;
     }
 }
 fishBtn.addEventListener("touchstart", handleFish);
@@ -329,6 +338,15 @@ function update() {
                 projectiles.splice(pIndex, 1);
                 monster.energy -= 1;
                 if (monster.energy <= 0) {
+                    if (monster.type === 'slime_blue' && Math.random() < 0.5) {
+                        items.push({ 
+                            x: monster.x, 
+                            y: monster.y, 
+                            width: 50, 
+                            height: 50, 
+                            image: fishImage 
+                        });
+                    }
                     monsters.splice(mIndex, 1);
                 }
             }
@@ -336,6 +354,24 @@ function update() {
 
         if (projectile.x > canvas.width) {
             projectiles.splice(pIndex, 1);
+        }
+    });
+
+    items.forEach((item, index) => {
+        item.x -= gameSpeed;
+
+        if (
+            cat.x < item.x + item.width &&
+            cat.x + cat.width > item.x &&
+            cat.y < item.y + item.height &&
+            cat.y + cat.height > item.y
+        ) {
+            items.splice(index, 1);
+            fishCount++;
+        }
+
+        if (item.x + item.width < 0) {
+            items.splice(index, 1);
         }
     });
 
@@ -448,10 +484,7 @@ function draw() {
             ctx.drawImage(currentCatImage, cat.x, cat.y, cat.width, cat.height);
         }
 
-        if (!cat.sliding && !(cat.jumping && cat.jumpCount === 2)) {
-             let img = cat.jumping ? catImages.jump : catImages.run[cat.frame];
-             ctx.drawImage(img, cat.x, cat.y, cat.width, cat.height);
-        }
+        
 
 
         
@@ -469,11 +502,20 @@ function draw() {
             ctx.restore();
         });
 
+        items.forEach(item => {
+            ctx.drawImage(item.image, item.x, item.y, item.width, item.height);
+        });
+
         // 에너지 표시
         ctx.fillStyle = "white";
         ctx.font = "30px Arial";
         ctx.textAlign = "left";
         ctx.fillText("Energy: " + playerEnergy, 20, 40);
+
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("x " + fishCount, 210, 80);
 
         if (gameState === 'gameOver') {
             ctx.fillStyle = "red";
