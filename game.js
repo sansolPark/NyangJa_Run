@@ -44,10 +44,16 @@ obstacleImage.src = "assets/obstacle.png";
 
 let mob1Image = new Image();
 mob1Image.src = "assets/Mob_1_slime.png";
+let mob2Image = new Image();
+mob2Image.src = "assets/Mob_2_slime_red.png";
+let mob3Image = new Image();
+mob3Image.src = "assets/Mob_3_slime_blue.png";
+let mob4Image = new Image();
+mob4Image.src = "assets/Mob_4_slime_stone.png";
 
 
 let imagesLoaded = 0;
-const totalImages = Object.values(catImages).flat().length + 5; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 1종
+const totalImages = Object.values(catImages).flat().length + 8; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 4종
 
 let titleInterval;
 let titleImageToggle = true;
@@ -91,6 +97,12 @@ obstacleImage.onerror = () => console.error(`Failed to load image: ${obstacleIma
 
 mob1Image.onload = imageLoadHandler;
 mob1Image.onerror = () => console.error(`Failed to load image: ${mob1Image.src}`);
+mob2Image.onload = imageLoadHandler;
+mob2Image.onerror = () => console.error(`Failed to load image: ${mob2Image.src}`);
+mob3Image.onload = imageLoadHandler;
+mob3Image.onerror = () => console.error(`Failed to load image: ${mob3Image.src}`);
+mob4Image.onload = imageLoadHandler;
+mob4Image.onerror = () => console.error(`Failed to load image: ${mob4Image.src}`);
 
 
 
@@ -99,7 +111,10 @@ let monsters = [];
 let projectiles = [];
 let playerEnergy = 100;
 const monsterTypes = {
-    slime: { image: mob1Image, energy: 1, width: 80, height: 80 }
+    slime: { image: mob1Image, energy: 1, width: 80, height: 80 },
+    slime_red: { image: mob2Image, energy: 2, width: 80, height: 80 },
+    slime_blue: { image: mob3Image, energy: 3, width: 80, height: 80 },
+    slime_stone: { image: mob4Image, energy: 4, width: 80, height: 80 }
 };
 let gameSpeed = 5;
 let bgX = 0;
@@ -172,6 +187,7 @@ document.addEventListener("keyup", (e) => {
 const jumpBtn = document.getElementById("jumpBtn");
 const slideBtn = document.getElementById("slideBtn");
 const attackBtn = document.getElementById("attackBtn");
+const fishBtn = document.getElementById("fishBtn");
 
 // 캔버스 클릭/터치로 게임 시작/재시작
 function handleCanvasInteraction(event) {
@@ -258,11 +274,21 @@ function handleAttack(e) {
 attackBtn.addEventListener("touchstart", handleAttack);
 attackBtn.addEventListener("click", handleAttack);
 
+function handleFish(e) {
+    e.preventDefault();
+    if (gameState === 'playing') {
+        playerEnergy += 100;
+    }
+}
+fishBtn.addEventListener("touchstart", handleFish);
+fishBtn.addEventListener("click", handleFish);
+
 
 
 
 function createMonster() {
-    const monsterKey = 'slime';
+    const monsterKeys = Object.keys(monsterTypes);
+    const monsterKey = monsterKeys[Math.floor(Math.random() * monsterKeys.length)];
     const type = monsterTypes[monsterKey];
 
     monsters.push({
@@ -374,10 +400,12 @@ function draw() {
         jumpBtn.style.display = 'block';
         slideBtn.style.display = 'block';
         attackBtn.style.display = 'block';
+        fishBtn.style.display = 'block';
     } else {
         jumpBtn.style.display = 'none';
         slideBtn.style.display = 'none';
         attackBtn.style.display = 'none';
+        fishBtn.style.display = 'none';
     }
 
     if (gameState === 'loading') {
