@@ -40,13 +40,14 @@ titleImage2.src = "assets/title2.jpg";
 let obstacleImage = new Image();
 obstacleImage.src = "assets/obstacle.png";
 
+
+
 let mob1Image = new Image();
 mob1Image.src = "assets/Mob_1_slime.png";
-let mob2Image = new Image();
-mob2Image.src = "assets/Mob_2_cockroach.png";
+
 
 let imagesLoaded = 0;
-const totalImages = Object.values(catImages).flat().length + 6; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 2종
+const totalImages = Object.values(catImages).flat().length + 5; // 고양이 3종, 배경, 타이틀 2종, 장애물, 몬스터 1종
 
 let titleInterval;
 let titleImageToggle = true;
@@ -87,19 +88,18 @@ titleImage2.onload = imageLoadHandler;
 titleImage2.onerror = () => console.error(`Failed to load image: ${titleImage2.src}`);
 obstacleImage.onload = imageLoadHandler;
 obstacleImage.onerror = () => console.error(`Failed to load image: ${obstacleImage.src}`);
+
 mob1Image.onload = imageLoadHandler;
 mob1Image.onerror = () => console.error(`Failed to load image: ${mob1Image.src}`);
-mob2Image.onload = imageLoadHandler;
-mob2Image.onerror = () => console.error(`Failed to load image: ${mob2Image.src}`);
+
 
 
 // --- 게임 변수 ---
-let obstacles = [];
 let monsters = [];
+let projectiles = [];
 let playerEnergy = 100;
 const monsterTypes = {
-    slime: { image: mob1Image, energy: 1, width: 80, height: 80 },
-    cockroach: { image: mob2Image, energy: 10, width: 100, height: 100 }
+    slime: { image: mob1Image, energy: 1, width: 80, height: 80 }
 };
 let gameSpeed = 5;
 let bgX = 0;
@@ -124,8 +124,8 @@ let cat = {
 
 // --- 게임 초기화 및 시작 ---
 function resetGame() {
-    obstacles = [];
     monsters = [];
+    projectiles = [];
     playerEnergy = 100;
     cat.x = 100;
     cat.y = canvas.height - 170;
@@ -144,7 +144,6 @@ function startGame() {
     if (titleInterval) clearInterval(titleInterval);
     resetGame();
     gameState = 'playing';
-    obstacleInterval = setInterval(createObstacle, 2000);
     monsterInterval = setInterval(createMonster, 3000);
 }
 
@@ -172,6 +171,7 @@ document.addEventListener("keyup", (e) => {
 // 터치 및 클릭 입력 (모바일 및 PC)
 const jumpBtn = document.getElementById("jumpBtn");
 const slideBtn = document.getElementById("slideBtn");
+const attackBtn = document.getElementById("attackBtn");
 
 // 캔버스 클릭/터치로 게임 시작/재시작
 function handleCanvasInteraction(event) {
@@ -232,38 +232,37 @@ function handleSlideEnd(e) {
     cat.sliding = false;
 }
 
+function createProjectile() {
+    projectiles.push({
+        x: cat.x + cat.width,
+        y: cat.y + cat.height / 2,
+        width: 50,
+        height: 50,
+        rotation: 0,
+        rotationSpeed: 0.2
+    });
+}
+
 slideBtn.addEventListener("touchstart", handleSlideStart);
 slideBtn.addEventListener("touchend", handleSlideEnd);
 slideBtn.addEventListener("mousedown", handleSlideStart); // PC 마우스 지원
 slideBtn.addEventListener("mouseup", handleSlideEnd);
 
 
-function createObstacle() {
-    // 원본 이미지 비율 유지
-    const originalAspectRatio = obstacleImage.naturalWidth / obstacleImage.naturalHeight;
-    const obstacleHeight = 100; // 기준 높이
-    const obstacleWidth = obstacleHeight * originalAspectRatio;
-
-    const obstacleX = canvas.width;
-
-    // 장애물 높이 랜덤 설정
-    const isHigh = Math.random() < 0.5;
-    // 높은 장애물은 슬라이드로 피해야 함, 낮은 장애물은 점프로 피해야 함
-    const obstacleY = isHigh ? canvas.height - 220 : canvas.height - 150;
-
-    obstacles.push({
-        x: obstacleX,
-        y: obstacleY,
-        width: obstacleWidth,
-        height: obstacleHeight,
-        rotation: 0,
-        // 회전 속도 2배 증가
-        rotationSpeed: (Math.random() - 0.5) * 0.2 // -0.1 to 0.1
-    });
+function handleAttack(e) {
+    e.preventDefault();
+    if (gameState === 'playing') {
+        createProjectile();
+    }
 }
+attackBtn.addEventListener("touchstart", handleAttack);
+attackBtn.addEventListener("click", handleAttack);
+
+
+
 
 function createMonster() {
-    const monsterKey = Math.random() < 0.7 ? 'slime' : 'cockroach'; // 70% slime, 30% cockroach
+    const monsterKey = 'slime';
     const type = monsterTypes[monsterKey];
 
     monsters.push({
@@ -290,32 +289,31 @@ function update() {
         cat.frame = (cat.frame + 1) % catImages.run.length;
     }
 
-    obstacles.forEach((obstacle, index) => {
-        obstacle.x -= gameSpeed * 2.5; // 배경보다 훨씬 빠르게 움직여 날아오는 효과
-        obstacle.rotation += obstacle.rotationSpeed;
+    projectiles.forEach((projectile, pIndex) => {
+        projectile.x += gameSpeed * 2;
+        projectile.rotation += projectile.rotationSpeed;
 
-        let catActualY = cat.y;
-        let catActualHeight = cat.height;
-        if (cat.sliding) {
-            catActualY = cat.y + cat.height / 2;
-            catActualHeight = cat.height / 2;
-        }
+        monsters.forEach((monster, mIndex) => {
+            if (
+                projectile.x < monster.x + monster.width &&
+                projectile.x + projectile.width > monster.x &&
+                projectile.y < monster.y + monster.height &&
+                projectile.y + projectile.height > monster.y
+            ) {
+                projectiles.splice(pIndex, 1);
+                monster.energy -= 1;
+                if (monster.energy <= 0) {
+                    monsters.splice(mIndex, 1);
+                }
+            }
+        });
 
-        if (
-            cat.x < obstacle.x + obstacle.width &&
-            cat.x + cat.width > obstacle.x &&
-            catActualY < obstacle.y + obstacle.height &&
-            catActualY + catActualHeight > obstacle.y
-        ) {
-            gameState = 'gameOver';
-            clearInterval(obstacleInterval);
-            clearInterval(monsterInterval);
-        }
-
-        if (obstacle.x + obstacle.width < 0) {
-            obstacles.splice(index, 1);
+        if (projectile.x > canvas.width) {
+            projectiles.splice(pIndex, 1);
         }
     });
+
+    
 
     // 몬스터 로직
     monsters.forEach((monster, index) => {
@@ -338,7 +336,6 @@ function update() {
             playerEnergy -= 1;
             if (playerEnergy <= 0) {
                 gameState = 'gameOver';
-                clearInterval(obstacleInterval);
                 clearInterval(monsterInterval);
             }
         }
@@ -376,9 +373,11 @@ function draw() {
     if (gameState === 'playing') {
         jumpBtn.style.display = 'block';
         slideBtn.style.display = 'block';
+        attackBtn.style.display = 'block';
     } else {
         jumpBtn.style.display = 'none';
         slideBtn.style.display = 'none';
+        attackBtn.style.display = 'none';
     }
 
     if (gameState === 'loading') {
@@ -427,17 +426,19 @@ function draw() {
         }
 
 
-        obstacles.forEach(obstacle => {
-            ctx.save();
-            ctx.translate(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
-            ctx.rotate(obstacle.rotation);
-            ctx.drawImage(obstacleImage, -obstacle.width / 2, -obstacle.height / 2, obstacle.width, obstacle.height);
-            ctx.restore();
-        });
+        
 
         monsters.forEach(monster => {
             const type = monsterTypes[monster.type];
             ctx.drawImage(type.image, monster.x, monster.y, monster.width, monster.height);
+        });
+
+        projectiles.forEach(projectile => {
+            ctx.save();
+            ctx.translate(projectile.x + projectile.width / 2, projectile.y + projectile.height / 2);
+            ctx.rotate(projectile.rotation);
+            ctx.drawImage(obstacleImage, -projectile.width / 2, -projectile.height / 2, projectile.width, projectile.height);
+            ctx.restore();
         });
 
         // 에너지 표시
