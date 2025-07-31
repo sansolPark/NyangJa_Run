@@ -13,7 +13,7 @@ canvas.height = window.innerHeight;
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    cat.y = canvas.height - 170;
+    cat.y = canvas.height - 220;
     // 리사이즈 시 현재 상태에 맞춰 다시 그리기
     draw();
 });
@@ -129,7 +129,7 @@ let monsterInterval;
 
 let cat = {
     x: 100,
-    y: canvas.height - 170,
+    y: canvas.height - 220,
     width: 120,
     height: 120,
     vy: 0,
@@ -151,7 +151,7 @@ function resetGame() {
     fishCount = 0;
     playerEnergy = 100;
     cat.x = 100;
-    cat.y = canvas.height - 170;
+    cat.y = canvas.height - 220;
     cat.vy = 0;
     cat.jumping = false;
     cat.sliding = false;
@@ -302,7 +302,7 @@ function createMonster() {
 
     monsters.push({
         x: canvas.width,
-        y: canvas.height - 170,
+        y: canvas.height - 220,
         width: type.width,
         height: type.height,
         energy: type.energy,
@@ -413,15 +413,15 @@ function update() {
         }
         cat.y += cat.vy;
         cat.vy += cat.gravity;
-        if (cat.y >= canvas.height - 170) {
-            cat.y = canvas.height - 170;
+        if (cat.y >= canvas.height - 220) {
+            cat.y = canvas.height - 220;
             cat.vy = 0;
             cat.jumping = false;
             cat.jumpCount = 0;
             cat.rotation = 0;
         }
     } else if (!cat.sliding) {
-        cat.y = canvas.height - 170;
+        cat.y = canvas.height - 220;
     }
 
     gameSpeed += 0.001;
@@ -537,5 +537,5 @@ function gameLoop() {
 }
 
 // --- 초기 실행 ---
-cat.y = canvas.height - 170;
+cat.y = canvas.height - 220;
 gameLoop();
