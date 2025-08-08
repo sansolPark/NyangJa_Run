@@ -286,6 +286,9 @@ function handleFish(e) {
     e.preventDefault();
     if (gameState === 'playing' && fishCount > 0) {
         playerEnergy += 100;
+        if (playerEnergy > 100) {
+            playerEnergy = 100;
+        }
         fishCount--;
     }
 }
